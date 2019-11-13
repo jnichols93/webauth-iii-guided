@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
-
+const jwt = require('jsonwebtoken'); // installed this library
 const Users = require('../users/users-model.js');
 
 // for endpoints beginning with /api/auth
@@ -18,6 +18,8 @@ router.post('/register', (req, res) => {
     });
 });
 
+
+
 router.post('/login', (req, res) => {
   let { username, password } = req.body;
 
@@ -25,12 +27,13 @@ router.post('/login', (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
-        //produce a token
-        const token = getJwToken(user.username);
+        const token = generateToken(user); // new line
 
-        // send token to client
+        // the server needs to return the token to the client
+        // this doesn't happen automatically like it happens with cookies
         res.status(200).json({
-          message: `Welcome ${user.username}!`,
+          message: `Welcome ${user.username}!, have a token...`,
+          token, // attach the token as part of the response
         });
       } else {
         res.status(401).json({ message: 'Invalid Credentials' });
@@ -40,17 +43,19 @@ router.post('/login', (req, res) => {
       res.status(500).json(error);
     });
 });
-function getJwToken(username){
-  const paylad ={
-    username,
-    role: "student" //this will come from our database
+
+function generateToken(user) {
+  const payload = {
+    subject: user.id, // sub in payload is what the token is about
+    username: user.username,
+    // ...otherData
   };
-  const secret = process.env.JWT_SECRET || "it is a secret is it safe?";
-  
+const secret = process.env.JWT_SECRET || "is it secret, is it safe?"
   const options = {
-    expiresIn "Id"
+    expiresIn: '1d', // show other available options in the library's documentation
   };
 
-  return jwt.sign(payload, secret, options)
+  // extract the secret away so it can be required and used where needed
+  return jwt.sign(payload, secret, options); // this method is synchronous
 }
 module.exports = router;
