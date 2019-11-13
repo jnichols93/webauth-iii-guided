@@ -25,6 +25,10 @@ router.post('/login', (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
+        //produce a token
+        const token = getJwToken(user.username);
+
+        // send token to client
         res.status(200).json({
           message: `Welcome ${user.username}!`,
         });
@@ -36,5 +40,17 @@ router.post('/login', (req, res) => {
       res.status(500).json(error);
     });
 });
+function getJwToken(username){
+  const paylad ={
+    username,
+    role: "student" //this will come from our database
+  };
+  const secret = process.env.JWT_SECRET || "it is a secret is it safe?";
+  
+  const options = {
+    expiresIn "Id"
+  };
 
+  return jwt.sign(payload, secret, options)
+}
 module.exports = router;
