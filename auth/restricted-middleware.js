@@ -24,3 +24,11 @@ module.exports = (req, res, next) => {
     res.status(400).json({ message: "No Credentials provided"});
   }
 };
+
+// users 
+
+// roles
+
+// can a user have more than one role
+
+// can a role be assigned to more than one user

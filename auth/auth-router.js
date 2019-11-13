@@ -2,13 +2,15 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken'); // installed this library
 const Users = require('../users/users-model.js');
-
+const {validateUser} = require("../users/users-helpers")
 // for endpoints beginning with /api/auth
 router.post('/register', (req, res) => {
   let user = req.body;
-  const hash = bcrypt.hashSync(user.password, 10); // 2 ^ n
-  user.password = hash;
 
+  // always validate the data before sending to the db
+const validateResult = validateUser(user);
+if(validateResult.isSuccesful === true){
+const hash = bcrypt.hashSync(user.password,10);//2^n
   Users.add(user)
     .then(saved => {
       res.status(201).json(saved);
@@ -16,6 +18,9 @@ router.post('/register', (req, res) => {
     .catch(error => {
       res.status(500).json(error);
     });
+}else{
+res.status(400).json({ message:"Invalid info about user"});
+}
 });
 
 
@@ -58,4 +63,5 @@ const secret = process.env.JWT_SECRET || "is it secret, is it safe?"
   // extract the secret away so it can be required and used where needed
   return jwt.sign(payload, secret, options); // this method is synchronous
 }
+
 module.exports = router;
